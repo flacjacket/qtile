@@ -1,3 +1,5 @@
+from __future__ import print_function, division
+
 from .. import command, bar, configurable, drawer
 from ..compat import gobject
 import logging

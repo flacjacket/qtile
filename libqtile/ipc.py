@@ -24,6 +24,8 @@
     run the same Python version, and that clients must be trusted (as
     un-marshalling untrusted data can result in arbitrary code execution).
 """
+from __future__ import print_function, division
+
 import marshal
 import select
 import logging

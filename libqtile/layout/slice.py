@@ -2,6 +2,7 @@
 """
 Slice layout. Serves as example of delegating layouts (or sublayouts)
 """
+from __future__ import print_function, division
 
 from .base import Layout, SingleWindow, Delegate
 from .max import Max

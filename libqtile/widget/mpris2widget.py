@@ -1,3 +1,5 @@
+from __future__ import print_function, division
+
 import dbus
 from dbus.mainloop.glib import DBusGMainLoop
 import gobject

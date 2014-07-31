@@ -1,4 +1,4 @@
-from __future__ import division
+from __future__ import print_function, division
 
 from .. import bar, xcbq, window
 from . import base

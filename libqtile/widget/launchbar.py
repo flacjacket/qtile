@@ -11,6 +11,7 @@ To execute a python command in qtile, begin with by 'qsh:'
 
 
 """
+from __future__ import print_function, division
 
 from libqtile import bar
 from libqtile.widget import base

@@ -1,3 +1,5 @@
+from __future__ import print_function, division
+
 from time import time
 from datetime import datetime
 from contextlib import contextmanager

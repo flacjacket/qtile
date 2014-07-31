@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function, division
+
 from .base import SingleWindow
 from .. import window
 from .. import drawer

@@ -51,6 +51,7 @@
 # Thanks to the creator of the YahooWeather widget (dmpayton). This code
 # borrows liberally from that one.
 ###################################################################
+from __future__ import print_function, division
 
 from . import base
 import httplib2

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # vim: set sw=4 et tw=80:
+from __future__ import print_function, division
 
 from . import base
 from ..compat import string_type

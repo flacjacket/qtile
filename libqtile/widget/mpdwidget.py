@@ -7,6 +7,7 @@
 # TODO: a teardown hook so I can client.disconnect() ?
 # TODO: some kind of templating to make shown info configurable
 # TODO: best practice to handle failures? just write to stderr?
+from __future__ import print_function, division
 
 from .. import utils
 from mpd import MPDClient, CommandError

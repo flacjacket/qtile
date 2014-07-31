@@ -2,6 +2,8 @@
     If dbus is available, this module implements a
     org.freedesktop.Notifications service.
 """
+from __future__ import print_function, division
+
 import logging
 
 try:

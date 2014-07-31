@@ -23,7 +23,7 @@
 #
 # This is not intended to be a complete cffi-based pango binding.
 
-from __future__ import print_function
+from __future__ import print_function, division, print_function
 
 from cffi import FFI
 import xcffib

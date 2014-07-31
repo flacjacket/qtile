@@ -1,3 +1,5 @@
+from __future__ import print_function, division
+
 from . import base
 import logging
 from pythonwifi.iwlibs import Wireless, Iwstats

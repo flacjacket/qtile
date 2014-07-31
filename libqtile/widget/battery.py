@@ -1,3 +1,5 @@
+from __future__ import print_function, division
+
 import cairocffi
 import os
 from libqtile import bar
