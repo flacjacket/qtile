@@ -146,7 +146,7 @@ class MonadTall(SingleWindow):
     focused = property(_get_focus, _set_focus)
 
     def _get_relative_size_from_absolute(self, absolute_size):
-        return float(absolute_size) / self.group.screen.dheight
+        return absolute_size // self.group.screen.dheight
 
     def _get_absolute_size_from_relative(self, relative_size):
         return int(relative_size * self.group.screen.dheight)
@@ -385,7 +385,7 @@ class MonadTall(SingleWindow):
         clients is returned.
         """
         # split shrink amount among number of clients
-        per_amt = amt / cidx
+        per_amt = amt // cidx
         left = amt  # track unused shrink amount
         # for each client before specified index
         for idx in range(0, cidx):
@@ -426,7 +426,7 @@ class MonadTall(SingleWindow):
         clients is returned.
         """
         # split shrink amount among number of clients
-        per_amt = amt / (len(self.relative_sizes) - 1 - cidx)
+        per_amt = amt // (len(self.relative_sizes) - 1 - cidx)
         left = amt  # track unused shrink amount
         # for each client after specified index
         for idx in range(cidx + 1, len(self.relative_sizes)):
@@ -459,7 +459,7 @@ class MonadTall(SingleWindow):
         Will grow the focused client in the
         secondary pane.
         """
-        half_change_size = amt / 2
+        half_change_size = amt // 2
         # track unshrinkable amounts
         left = amt
         # first secondary (top)
@@ -524,7 +524,7 @@ class MonadTall(SingleWindow):
         index by an equal share of the provided amount.
         """
         # split grow amount among number of clients
-        per_amt = amt / cidx
+        per_amt = amt // cidx
         for idx in range(0, cidx):
             self.grow(idx, per_amt)
 
@@ -534,7 +534,7 @@ class MonadTall(SingleWindow):
         index by an equal share of the provided amount.
         """
         # split grow amount among number of clients
-        per_amt = amt / (len(self.relative_sizes) - 1 - cidx)
+        per_amt = amt // (len(self.relative_sizes) - 1 - cidx)
         for idx in range(cidx + 1, len(self.relative_sizes)):
             self.grow(idx, per_amt)
 
@@ -573,7 +573,7 @@ class MonadTall(SingleWindow):
             change = client.height - self._min_height
 
         # calculate half of that change
-        half_change = change / 2
+        half_change = change // 2
 
         # first secondary (top)
         if self.focused == 1:

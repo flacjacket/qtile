@@ -70,7 +70,7 @@ class LaunchBar(base._Widget):
             input_width = img.get_width()
             input_height = img.get_height()
 
-            sp = input_height / float(self.bar.height - 4)
+            sp = input_height / (self.bar.height - 4)
 
             width = input_width / sp
             if width > self.width:
@@ -81,7 +81,7 @@ class LaunchBar(base._Widget):
             scaler = cairocffi.Matrix()
 
             scaler.scale(sp, sp)
-            scaler.translate(self.padding * -1, -2)
+            scaler.translate(-self.padding, -2)
             imgpat.set_matrix(scaler)
 
             imgpat.set_filter(cairocffi.FILTER_BEST)
@@ -117,8 +117,7 @@ class LaunchBar(base._Widget):
     def get_icon_in_position(self, x, y):
         """ Retreive the wich icon is clicked according to its position. """
         for i in self.commands:
-            if x < self.icons_offsets[i] + self.icons_widths[i] + self.padding\
-               / 2:
+            if x < self.icons_offsets[i] + self.icons_widths[i] + self.padding / 2:
                 return i
 
     def button_press(self, x, y, button):

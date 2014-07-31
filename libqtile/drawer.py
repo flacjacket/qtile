@@ -332,7 +332,7 @@ class Drawer:
         self.ctx.set_font_size(heightlimit)
         asc, desc, height, _, _ = self.font_extents()
         self.ctx.set_font_size(
-            int(heightlimit * (heightlimit / float(height))))
+            int(heightlimit * heightlimit / height))
         return self.font_extents()
 
     def fit_text(self, strings, heightlimit):
@@ -345,7 +345,7 @@ class Drawer:
         if not maxheight:
             return 0, 0
         self.ctx.set_font_size(
-            int(heightlimit * (heightlimit / float(maxheight))))
+            int(heightlimit * heightlimit / maxheight))
         maxwidth, maxheight = 0, 0
         for i in strings:
             _, _, x, y, _, _ = self.ctx.text_extents(i)

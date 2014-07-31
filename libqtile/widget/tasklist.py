@@ -165,7 +165,7 @@ class TaskList(base._Widget, base.PaddingMixin, base.MarginMixin):
         scaler = cairocffi.Matrix()
 
         if height != self.icon_size:
-            sp = height / float(self.icon_size)
+            sp = height / self.icon_size
             height = self.icon_size
             width = width / sp
             scaler.scale(sp, sp)

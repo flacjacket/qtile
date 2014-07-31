@@ -292,12 +292,12 @@ class Stack(Layout):
         else:
             px = self.group.qtile.colorPixel(self.border_normal)
 
-        columnWidth = int(screen.width / float(len(self.stacks)))
+        columnWidth = screen.width // len(self.stacks)
         xoffset = screen.x + i * columnWidth
         winWidth = columnWidth - 2 * self.border_width
 
         if s.split:
-            columnHeight = int(screen.height / float(len(s)))
+            columnHeight = screen.height // len(s)
             winHeight = columnHeight - 2 * self.border_width
             yoffset = screen.y + s.index(client) * columnHeight
             client.place(

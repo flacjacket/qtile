@@ -45,7 +45,7 @@ class Image(base._Widget, base.MarginMixin):
 
             if new_height and self.image_height != new_height:
                 scaler = cairocffi.Matrix()
-                sp = self.image_height / float(new_height)
+                sp = self.image_height / new_height
                 self.image_height = new_height
                 self.image_width = int(self.image_width / sp)
                 scaler.scale(sp, sp)

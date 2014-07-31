@@ -282,7 +282,7 @@ class BatteryIcon(_Battery):
             input_width = img.get_width()
             input_height = img.get_height()
 
-            sp = input_height / float(self.bar.height - 1)
+            sp = input_height / (self.bar.height - 1)
 
             width = input_width / sp
             if width > self.width:

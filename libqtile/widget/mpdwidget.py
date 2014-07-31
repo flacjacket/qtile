@@ -240,7 +240,7 @@ class Mpd(base.ThreadedPollText):
                             self.status and \
                             self.status.get('time', None):
                         elapsed, total = self.status['time'].split(':')
-                        percent = float(elapsed) / float(total)
+                        percent = elapsed / total
                         progress = int(percent * len(playing))
                         playing = '<span color="%s">%s</span>%s' % (
                             utils.hex(self.foreground_progress),
