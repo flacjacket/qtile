@@ -18,6 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from __future__ import division
+
 import array
 import contextlib
 import inspect
@@ -333,7 +335,7 @@ class _Window(command.CommandObject):
         else:
             value = opacity[0]
             # 2 decimal places
-            as_float = round((float(value) / 0xffffffff), 2)
+            as_float = round(value / 0xffffffff, 2)
             return as_float
 
     opacity = property(getOpacity, setOpacity)
