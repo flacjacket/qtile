@@ -1,10 +1,27 @@
 from logging import getLogger
 
-# PyPy < 2.6 compaitibility
-try:
-    from ._ffi_xcursors import ffi
-except ImportError:
-    from .ffi_build import xcursors_ffi as ffi
+import xcffib
+from cffi import FFI
+ffi = FFI()
+
+ffi.include(xcffib.ffi)
+ffi.cdef("""
+    typedef uint32_t xcb_cursor_t;
+    typedef struct xcb_cursor_context_t xcb_cursor_context_t;
+
+    int xcb_cursor_context_new(
+        xcb_connection_t *conn,
+        xcb_screen_t *screen,
+        xcb_cursor_context_t **ctx
+        );
+
+    xcb_cursor_t xcb_cursor_load_cursor(
+        xcb_cursor_context_t *ctx,
+        const char *name
+        );
+
+    void xcb_cursor_context_free(xcb_cursor_context_t *ctx);
+""")
 
 
 # Stolen from samurai-x
@@ -107,7 +124,7 @@ class Cursors(dict):
 
     def _setup_xcursor_binding(self):
         try:
-            xcursor = ffi.dlopen('libxcb-cursor.so')
+            xcursor = ffi.dlopen('xcb-cursor')
         except OSError:
             self.log.warning("xcb-cursor not found, fallback to font pointer")
             return False
