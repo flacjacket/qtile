@@ -55,3 +55,4 @@ documentation.
 .. |coveralls| image:: https://coveralls.io/repos/qtile/qtile/badge.png?branch=develop
     :alt: Build Coverage
     :target: https://coveralls.io/r/qtile/qtile
+new_line
