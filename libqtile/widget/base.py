@@ -430,20 +430,21 @@ class InLoopPoll(object):
         self.tick()
 
     def tick(self):
+        width = self.width
         update = self.poll()
         if update:
-            self.update()
+            self.update(width == self.width)
 
     def poll(self):
         pass
 
-    def update(self):
+    def update(self, full_update=True):
         # If our width hasn't changed, we just draw ourselves. Otherwise,
         # we draw the whole bar.
-        if self.width == old_width:
-            self.draw()
-        else:
+        if full_update:
             self.bar.draw()
+        else:
+            self.draw()
 
 
 class ThreadedPoll(InLoopPoll):
