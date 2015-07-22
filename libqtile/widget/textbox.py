@@ -45,8 +45,12 @@ class TextBox(base._TextBox):
         base._TextBox.__init__(self, text=text, width=width, **config)
 
     def update(self, text):
+        old_width = self.width
         self.text = text
-        self.bar.draw()
+        if self.width == old_width:
+            self.draw()
+        else:
+            self.bar.draw()
 
     def cmd_update(self, text):
         """

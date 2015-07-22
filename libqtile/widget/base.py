@@ -375,7 +375,7 @@ class _TextBox(_Widget):
         self.drawer.clear(self.background or self.bar.background)
         self.layout.draw(
             self.actual_padding or 0,
-            int(self.bar.height / 2.0 - self.layout.height / 2.0) + 1
+            int(self.bar.height / 2 - self.layout.height / 2) + 1
         )
         self.drawer.draw(offsetx=self.offsetx, width=self.width)
 
@@ -400,7 +400,9 @@ class _TextBox(_Widget):
         return d
 
 
-class InLoopPollText(_TextBox):
+# Polling Mixins
+
+class InLoopPoll(object):
     """ A common interface for polling some 'fast' information, munging it, and
     rendering the result in a text box. You probably want to use
     ThreadedPollText instead.
@@ -413,10 +415,6 @@ class InLoopPollText(_TextBox):
             "widget updates whenever the event loop is idle."),
     ]
 
-    def __init__(self, **config):
-        _TextBox.__init__(self, 'N/A', width=bar.CALCULATED, **config)
-        self.add_defaults(InLoopPollText.defaults)
-
     def timer_setup(self):
         update_interval = self.tick()
         # If self.update_interval is defined and .tick() returns None, re-call
@@ -428,41 +426,29 @@ class InLoopPollText(_TextBox):
             self.timeout_add(update_interval, self.timer_setup)
         # If update_interval is False, we won't re-call
 
-    def _configure(self, qtile, bar):
-        should_tick = self.configured
-        _TextBox._configure(self, qtile, bar)
-
-        # Update when we are being re-configured.
-        if should_tick:
-            self.tick()
-
     def button_press(self, x, y, button):
         self.tick()
 
-    def poll(self):
-        return 'N/A'
-
     def tick(self):
-        text = self.poll()
-        self.update(text)
+        update = self.poll()
+        if update:
+            self.update()
 
-    def update(self, text):
-        old_width = self.layout.width
-        if self.text != text:
-            self.text = text
-            # If our width hasn't changed, we just draw ourselves. Otherwise,
-            # we draw the whole bar.
-            if self.layout.width == old_width:
-                self.draw()
-            else:
-                self.bar.draw()
+    def poll(self):
+        pass
+
+    def update(self):
+        # If our width hasn't changed, we just draw ourselves. Otherwise,
+        # we draw the whole bar.
+        if self.width == old_width:
+            self.draw()
+        else:
+            self.bar.draw()
 
 
-class ThreadedPollText(InLoopPollText):
+class ThreadedPoll(InLoopPoll):
     """ A common interface for polling some REST URL, munging the data, and
     rendering the result in a text box. """
-    def __init__(self, **config):
-        InLoopPollText.__init__(self, **config)
 
     def tick(self):
         def worker():
@@ -473,7 +459,7 @@ class ThreadedPollText(InLoopPollText):
         threading.Thread(target=worker).start()
 
 
-class ThreadPoolText(_TextBox):
+class ThreadPoll(InLoopPoll):
     """ A common interface for wrapping blocking events which when triggered
     will update a textbox.  This is an alternative to the ThreadedPollText
     class which differs by being push based rather than pull.
@@ -496,33 +482,39 @@ class ThreadPoolText(_TextBox):
             except Exception:
                 self.log.exception('poll() raised exceptions, not '
                                    'rescheduling')
+                return
 
+            # If .tick() returns None, don't reshedule
             if result is not None:
                 try:
-                    self.update(result)
                     self.timer_setup()
                 except Exception:
                     self.log.exception('Failed to reschedule.')
             else:
                 self.log.warning('poll() returned None, not rescheduling')
 
-        future = self.qtile.run_in_executor(self.poll)
+        future = self.qtile.run_in_executor(self.tick)
         future.add_done_callback(on_done)
 
-    def update(self, text):
-        old_width = self.layout.width
-        if self.text == text:
-            return
-
-        self.text = text
-
-        if self.layout.width == old_width:
-            self.draw()
-        else:
-            self.bar.draw()
-
-    def poll(self):
+    def button_press(self, x, y, button):
         pass
+
+
+# Old polling textboxes
+
+
+class InLoopPollText(_TextBox, InLoopPoll):
+    def __init__(self, **config):
+        super(InLoopPollText, self).__init__('N/A', width=bar.CALCULATED, **config)
+
+
+class ThreadedPollText(_TextBox, ThreadedPoll):
+    pass
+
+
+class ThreadPoolText(_TextBox, ThreadPoll):
+    def __init__(self, text, **config):
+        super(ThreadPoolText, self).__init__(text, width=bar.CALCULATED, **config)
 
 # these two classes below look SUSPICIOUSLY similar
 
