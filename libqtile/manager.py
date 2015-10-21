@@ -1361,9 +1361,8 @@ class Qtile(command.CommandObject):
         if pid == 0:
             os.close(r)
 
-            # close qtile's stdin, stdout, stderr so the called process doesn't
+            # close qtile's stdout, stderr so the called process doesn't
             # pollute our xsession-errors.
-            os.close(0)
             os.close(1)
             os.close(2)
 
@@ -1371,23 +1370,23 @@ class Qtile(command.CommandObject):
             if pid2 == 0:
                 os.close(w)
 
-                # Open /dev/null as stdin, stdout, stderr
+                # Open /dev/null as stdout, stderr
                 try:
                     fd = os.open(os.devnull, os.O_RDWR)
                 except OSError:
                     # This shouldn't happen, catch it just in case
                     pass
                 else:
-                    if fd > 0:
-                        # Again, this shouldn't happen, but we should just check
-                        os.dup2(fd, 0)
-                    os.dup2(fd, 1)
-                    os.dup2(fd, 2)
+                    # Again, this should always happen, but we should just check
+                    if fd == 1:
+                        os.dup2(fd, 1)
+                        os.dup2(fd, 2)
 
-                try:
-                    os.execvp(args[0], args)
-                except OSError:
-                    pass
+                        # We just want to be really careful we don't accidentaly fork qtile
+                        try:
+                            os.execvp(args[0], args)
+                        except OSError:
+                            pass
                 os._exit(1)
             else:
                 # Here it doesn't matter if fork failed or not, we just write
