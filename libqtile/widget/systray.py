@@ -126,12 +126,12 @@ class Systray(window._Window, base._Widget):
 
         qtile.conn.conn.core.SetSelectionOwner(
             win.wid,
-            atoms['_NET_SYSTEM_TRAY_S{}'.format(self.bar.screen.index)],
+            atoms['_NET_SYSTEM_TRAY_S0'],
             xcffib.CurrentTime
         )
         data = [
             xcffib.CurrentTime,
-            atoms['_NET_SYSTEM_TRAY_S{}'.format(self.bar.screen.index)],
+            atoms['_NET_SYSTEM_TRAY_S0'],
             win.wid, 0, 0
         ]
         union = ClientMessageData.synthetic(data, "I" * 5)
@@ -213,7 +213,7 @@ class Systray(window._Window, base._Widget):
         atoms = self.qtile.conn.atoms
         self.qtile.conn.conn.core.SetSelectionOwner(
             0,
-            atoms['_NET_SYSTEM_TRAY_S{}'.format(self.bar.screen.index)],
+            atoms['_NET_SYSTEM_TRAY_S0'],
             xcffib.CurrentTime,
         )
         self.hide()
