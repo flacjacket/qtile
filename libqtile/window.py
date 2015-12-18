@@ -871,16 +871,16 @@ class Window(_Window):
 
         if state == MAXIMIZED:
             self._enablefloating(
-                screen.dx,
-                screen.dy,
+                screen.x - screen.dx,
+                screen.y - screen.dy,
                 screen.dwidth,
                 screen.dheight,
                 new_float_state=state
             )
         elif state == FULLSCREEN:
             self._enablefloating(
-                screen.x,
-                screen.y,
+                0,
+                0,
                 screen.width,
                 screen.height,
                 new_float_state=state
@@ -897,45 +897,24 @@ class Window(_Window):
             self.state = IconicState
             self.hide()
         else:
-            # make sure x, y is on the screen
-            screen = self.qtile.find_closest_screen(self.x, self.y)
-            if screen is not None and \
-                    self.group is not None and \
-                    self.group.screen is not None and \
-                    screen != self.group.screen:
-                x = self.group.screen.x
-                y = self.group.screen.y
-            else:
-                x = self.x
-                y = self.y
+            # Adjust the height and width of the window here
+            width = max(self.width, self.hints.get('min_width', 0))
+            height = max(self.height, self.hints.get('min_width', 0))
 
-            if self.width < self.hints.get('min_width', 0):
-                width = self.hints['min_width']
-            else:
-                width = self.width
+            width_inc = self.hints.get('width_inc', 0)
+            if width_inc:
+                # decrease width to be a multiple of width_inc, relative to base_width
+                base_width = self.hints.get('base_width', 0)
+                width = width - ((width - base_width) % width_inc)
 
-            if self.height < self.hints.get('min_height', 0):
-                height = self.hints['min_height']
-            else:
-                height = self.height
+            height_inc = self.hints.get('width_inc', 0)
+            if height_inc:
+                base_height = self.hints.get('base_height', 0)
+                height = height - ((height - base_height) % height_inc)
 
-            if self.hints.get('width_inc', 0):
-                width = (width -
-                         ((width - self.hints['base_width']) %
-                          self.hints['width_inc']))
+            self._float_info['w'] = width
+            self._float_info['h'] = height
 
-            if self.hints.get('height_inc', 0):
-                height = (height -
-                          ((height - self.hints['base_height'])
-                           % self.hints['height_inc']))
-
-            self.place(
-                x, y,
-                width, height,
-                self.borderwidth,
-                self.bordercolor,
-                above=True,
-            )
         if self._float_state != new_float_state:
             self._float_state = new_float_state
             if self.group:  # may be not, if it's called from hook
@@ -945,10 +924,10 @@ class Window(_Window):
     def _enablefloating(self, x=None, y=None, w=None, h=None,
                         new_float_state=FLOATING):
         if new_float_state != MINIMIZED:
-            self.x = x
-            self.y = y
-            self.width = w
-            self.height = h
+            self._float_info['x'] = x
+            self._float_info['y'] = y
+            self._float_info['w'] = self.width = w
+            self._float_info['h'] = self.height = h
         self._reconfigure_floating(new_float_state=new_float_state)
 
     def enablefloating(self):
