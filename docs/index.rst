@@ -29,6 +29,7 @@ Getting involved
     :maxdepth: 2
 
     manual/contributing
+    manual/layout_guide
     manual/hacking
 
 Miscellaneous
