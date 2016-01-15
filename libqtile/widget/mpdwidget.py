@@ -65,14 +65,16 @@ class Mpd(base.ThreadPoolText):
                  fmt_stopped="Stopped [%v%%]", msg_nc='Mpd off',
                  do_color_progress=True, **config):
         """
-            - host: host to connect to
-            - port: port to connect to
-            - password: password to use
-            - fmt_playing, fmt_stopped: format strings to display when playing/paused and when stopped, respectively
-            - msg_nc: which message to show when we're not connected
-            - do_color_progress: whether to indicate progress in song by altering message color
-            - width: A fixed width, or bar.CALCULATED to calculate the width
-            automatically (which is recommended).
+            :param host: host to connect to
+            :param port: port to connect to
+            :param password: password to use
+            :param fmt_playing: format strings to display when playing/paused
+            :param fmt_stopped: format strings to display when stopped
+            :param msg_nc: which message to show when we're not connected
+            :param do_color_progress: whether to indicate progress in song by
+                                      altering message color
+            :param width: A fixed width, or bar.CALCULATED to calculate the
+                          width automatically (which is recommended).
         """
         super(Mpd, self).__init__(msg_nc, **config)
         self.host = host

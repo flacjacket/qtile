@@ -74,11 +74,13 @@ from oauth2client import client, tools
 from libqtile import utils
 from libqtile.log_utils import logger
 
-try:
-    import argparse
-    flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
-except ImportError:
-    flags = None
+# We shouldn't have argument parsing here, doing this breaks the doc generation
+# for this widget
+# try:
+#     import argparse
+#     flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
+# except ImportError:
+#     flags = None
 
 SCOPES = 'https://www.googleapis.com/auth/calendar'
 CLIENT_SECRET_FILE = 'client_secret.json'
