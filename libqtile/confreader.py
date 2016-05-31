@@ -74,21 +74,25 @@ class File(object):
         # if you add something here, be sure to add a reasonable default value
         # to resources/default_config.py
         config_options = [
+            # command tree objects
+            "screens",
+            "groups",
+            "layouts",
+            # key bindings
             "keys",
             "mouse",
-            "groups",
             "dgroups_key_binder",
+            # behavior
             "dgroups_app_rules",
             "follow_mouse_focus",
             "focus_on_window_activation",
-            "cursor_warp",
-            "layouts",
-            "floating_layout",
-            "screens",
-            "main",
             "auto_fullscreen",
-            "widget_defaults",
+            "cursor_warp",
             "bring_front_click",
+            # system elements
+            "floating_layout",
+            "main",
+            "widget_defaults",
             "wmname",
         ]
 

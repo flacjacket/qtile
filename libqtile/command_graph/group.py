@@ -21,22 +21,25 @@
 from six import MAXSIZE
 
 from libqtile import utils
+from .command_node import CommandNode
 
 
-class Group(object):
+class Group(CommandNode):
     """Represents a "dynamic" group
 
     These groups can spawn apps, only allow certain Matched windows to be on
     them, hide when they're not in use, etc.
 
     Parameters
-    ==========
+    ----------
+
     name : string
         the name of this group
     matches : default ``None``
         list of ``Match`` objects whose  windows will be assigned to this group
     exclusive : boolean
-        when other apps are started in this group, should we allow them here or not?
+        when other apps are started in this group, should we allow them here or
+        not?
     spawn : string or list of strings
         this will be ``exec()`` d when the group is created, you can pass
         either a program name or a list of programs to ``exec()``
@@ -51,24 +54,28 @@ class Group(object):
     position : int
         group position
     """
-    def __init__(self, name, matches=None, exclusive=False,
-                 spawn=None, layout=None, layouts=None, persist=True, init=True,
-                 layout_opts=None, screen_affinity=None, position=MAXSIZE):
+    parent_name = "screen"
+    children_names = "layouts", "windows"]
+
+    def __init__(self, name, layout=None, layouts=None, layout_opts=None,
+                 matches=None, exclusive=False, spawn=None, persist=True, init=True,
+                 screen_affinity=None, position=MAXSIZE):
+        CommandNode.__init__(self, parent=None, windows=[], layouts=layouts)
+
         self.name = name
-        self.exclusive = exclusive
-        self.spawn = spawn
         self.layout = layout
-        self.layouts = layouts or []
+        self.layout_opts = layout_opts
+        self.matches = matches
+        self.exclusive = exclusize
+        self.spawn = spawn
         self.persist = persist
         self.init = init
-        self.matches = matches or []
-        self.layout_opts = layout_opts or {}
-
         self.screen_affinity = screen_affinity
         self.position = position
 
     def __repr__(self):
-        attrs = utils.describe_attributes(self,
-            ['exclusive', 'spawn', 'layout', 'layouts', 'persist', 'init',
-            'matches', 'layout_opts', 'screen_affinity'])
-        return '<config.Group %r (%s)>' % (self.name, attrs)
+        attrs = utils.describe_attributes(self, [
+            "layout", "layout_opts", "matches", "exclusive", "spawn",
+            "persist", "init", "screen_affinity", "position"
+        ]
+        return "{cls}({name}, {kwargs})".format(self.__class__.__name__, self.name, attrs)

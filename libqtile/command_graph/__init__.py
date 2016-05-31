@@ -18,13 +18,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# graph elements
-from libqtile.command_graph.group import Group
-from libqtile.command_graph.screen import Screen
+from .bar import Bar
+from .group import Group
+from .layout import Layout
+from .screen import Screen
+from .widget import Widget
+from .window import Window
 
-from .click import Click
-from .drag import Drag
-from .ezconfig import EzConfig, EzClick, EzDrag, EzKey
-from .key import Key
-from .match import Match
-from .rule import Rule
+
+def build_tree(config):
+    """Take a config object and return the associated command tree"""
+    # get the default layouts
+    cmd_layouts = config.layouts
+    # groups
+    cmd_groups = []
+    for group in config.groups:
+        if group.layouts:
+
+    groups = config.groups
+    # screens

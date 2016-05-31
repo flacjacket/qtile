@@ -18,13 +18,13 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# graph elements
-from libqtile.command_graph.group import Group
-from libqtile.command_graph.screen import Screen
+from .command_node import CommandNode
 
-from .click import Click
-from .drag import Drag
-from .ezconfig import EzConfig, EzClick, EzDrag, EzKey
-from .key import Key
-from .match import Match
-from .rule import Rule
+
+#class BarCollection(CollectionNode):
+#    name = "bar"
+
+
+class Bar(CommandNode):
+    child_nodes = ["screen"]
+    child_containers = ["widget"]
