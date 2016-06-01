@@ -24,6 +24,14 @@ import six
 from libqtile.log_utils import logger
 
 
+class SelectError(Exception):
+    def __init__(self, name, sel, msg):
+        Exception.__init__(self)
+        self.name = name
+        self.sel = sel
+        self.msg = msg
+
+
 class TreeNode(object):
     def __init__(self, children):
         self.children = children
@@ -216,3 +224,13 @@ class CommandNode(six.with_metaclass(abc.ABCMeta)):
         except Exception:
             error = traceback.format_exc()
             logger.error('Exception calling "%s":\n%s' % (function, error))
+
+
+class CommandRoot(CommandNode):
+    """Root object of the command tree
+
+    This class constructs the entire hierarchy of callable commands from a conf
+    object
+    """
+    children_names = ["screens", "groups", "layouts", "bars", "widgets", "windows"]
+    node_names = ["screen", "group", "layout", "window"]

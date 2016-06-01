@@ -18,22 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from .bar import Bar
-from .group import Group
-from .layout import Layout
-from .screen import Screen
-from .widget import Widget
-from .window import Window
 
+from .lazy import LazyTree
 
-def build_tree(config):
-    """Take a config object and return the associated command tree"""
-    # get the default layouts
-    cmd_layouts = config.layouts
-    # groups
-    cmd_groups = []
-    for group in config.groups:
-        if group.layouts:
-
-    groups = config.groups
-    # screens
+lazy = LazyTree()
