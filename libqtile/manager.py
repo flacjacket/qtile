@@ -254,7 +254,7 @@ class Qtile(command.CommandObject):
         self.convert_selection(CLIPBOARD)
 
     def setup_eventloop(self):
-        self._eventloop = asyncio.new_event_loop()
+        self._eventloop = asyncio.get_event_loop()
         self._eventloop.add_signal_handler(signal.SIGINT, self.stop)
         self._eventloop.add_signal_handler(signal.SIGTERM, self.stop)
         self._eventloop.set_exception_handler(
