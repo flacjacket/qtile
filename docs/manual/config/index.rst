@@ -126,6 +126,22 @@ configuration variables that control specific aspects of Qtile's behavior:
 
         - smart: automatically focus if the window is in the current group
 
+Extending core functionality
+============================
+
+While we try to expose as much configurability as possible, it is not always
+feasible or possible to expose everything every user wants to tweak as a
+configuration parameter.  In order to allow users full control, after the
+configuration is read, if the configuration defines a ``main`` function, this
+is called with a single argument, being the core ``Qtile`` object.  This gives
+full control of qtile over to the user.  One example of when to use this is to
+set the event loop to use ``uvloop``::
+
+    import asyncio
+    import uvloop
+    def main(self):
+        asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+
 Testing your configuration
 ==========================
 
