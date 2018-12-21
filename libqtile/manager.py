@@ -369,7 +369,7 @@ class Qtile(command.CommandObject):
             self.screens.append(s)
 
     def _process_screens(self):
-        if hasattr(self.config, 'fake_screens'):
+        if self.config.fake_screens is not None:
             self._process_fake_screens()
             return
 

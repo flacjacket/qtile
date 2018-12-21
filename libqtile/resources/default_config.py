@@ -104,6 +104,7 @@ screens = [
         ),
     ),
 ]
+fake_screens = None
 
 # Drag floating layouts.
 mouse = [
