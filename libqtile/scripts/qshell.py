@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from libqtile import sh, command
+from libqtile import ipc, sh
 
 
 def main():
@@ -59,7 +59,7 @@ def main():
 
     args = parser.parse_args()
 
-    client = command.Client(args.socket, is_json=args.is_json)
+    client = ipc.Client(args.socket, is_json=args.is_json)
     if args.pyfile is None:
         qsh = sh.QSh(client)
         if args.command is not None:

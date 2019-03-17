@@ -64,12 +64,12 @@ class ManagerConfig:
         libqtile.config.Key(
             ["control"],
             "k",
-            libqtile.command._Call([("layout", None)], "up")
+            libqtile.command.lazy.layout.up(),
         ),
         libqtile.config.Key(
             ["control"],
             "j",
-            libqtile.command._Call([("layout", None)], "down")
+            libqtile.command.lazy.layout.down(),
         ),
     ]
     mouse = []
@@ -994,12 +994,12 @@ class _Config:
         libqtile.config.Key(
             ["control"],
             "k",
-            libqtile.command._Call([("layout", None)], "up")
+            libqtile.command.lazy.layout.up(),
         ),
         libqtile.config.Key(
             ["control"],
             "j",
-            libqtile.command._Call([("layout", None)], "down")
+            libqtile.command.lazy.layout.down(),
         ),
     ]
     mouse = []

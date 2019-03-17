@@ -47,10 +47,11 @@ from ..utils import QtileError, get_cache_dir
 from ..widget.base import _Widget
 from ..extension.base import _Extension
 from .. import command
-from .. import hook
 from .. import utils
 from .. import window
 from . import xcbq
+from libqtile import hook, ipc
+from libqtile.command_graph import CommandGraphCall
 
 
 def _import_module(module_name, dir_path):
@@ -93,7 +94,7 @@ class Qtile(command.CommandObject):
             display_number = display_name.partition(":")[2]
             if "." not in display_number:
                 display_name += ".0"
-            fname = command.find_sockfile(display_name)
+            fname = ipc.find_sockfile(display_name)
 
         self.conn = xcbq.Connection(display_name)
         self.config = config
@@ -181,7 +182,10 @@ class Qtile(command.CommandObject):
                 self.groups_map[sp.name] = sp
 
         self.setup_eventloop()
-        self.server = command._Server(self.fname, self, config, self._eventloop)
+
+        if os.path.exists(self.fname):
+            os.unlink(self.fname)
+        self.server = ipc.Server(self.fname, command.wrap_ipc_data(self.dispatch_call), self._eventloop)
 
         self.current_screen = None
         self.screens = []
@@ -948,9 +952,7 @@ class Qtile(command.CommandObject):
             return
         for i in k.commands:
             if i.check(self):
-                status, val = self.server.call(
-                    (i.selectors, i.name, i.args, i.kwargs)
-                )
+                status, val = self.dispatch_call(i)
                 if status in (command.ERROR, command.EXCEPTION):
                     logger.error("KB command error %s: %s" % (i.name, val))
         else:
@@ -1003,8 +1005,7 @@ class Qtile(command.CommandObject):
                     if i.check(self):
                         if m.focus == "before":
                             self.cmd_focus_by_click(e)
-                        status, val = self.server.call(
-                            (i.selectors, i.name, i.args, i.kwargs))
+                        status, val = self.dispatch_call(i)
                         if m.focus == "after":
                             self.cmd_focus_by_click(e)
                         if status in (command.ERROR, command.EXCEPTION):
@@ -1018,8 +1019,7 @@ class Qtile(command.CommandObject):
                     i = m.start
                     if m.focus == "before":
                         self.cmd_focus_by_click(e)
-                    status, val = self.server.call(
-                        (i.selectors, i.name, i.args, i.kwargs))
+                    status, val = self.dispatch_call(i)
                     if status in (command.ERROR, command.EXCEPTION):
                         logger.error(
                             "Mouse command error %s: %s" % (i.name, val)
@@ -1064,12 +1064,9 @@ class Qtile(command.CommandObject):
         if dx or dy:
             for i in cmd:
                 if i.check(self):
-                    status, val = self.server.call((
-                        i.selectors,
-                        i.name,
-                        i.args + (rx + dx, ry + dy, e.event_x, e.event_y),
-                        i.kwargs
-                    ))
+                    new_args = i.args + (rx + dx, ry + dy, e.event_x, e.event_y)
+                    new_cmd = CommandGraphCall(i.selectors, i.name, new_args, i.kwargs)
+                    status, val = self.dispatch_call(new_cmd)
                     if status in (command.ERROR, command.EXCEPTION):
                         logger.error(
                             "Mouse command error %s: %s" % (i.name, val)

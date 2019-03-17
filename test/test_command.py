@@ -35,11 +35,11 @@ class CallConfig:
     keys = [
         libqtile.config.Key(
             ["control"], "j",
-            libqtile.command._Call([("layout", None)], "down")
+            libqtile.command.lazy.layout.down(),
         ),
         libqtile.config.Key(
             ["control"], "k",
-            libqtile.command._Call([("layout", None)], "up"),
+            libqtile.command.lazy.layout.up(),
         ),
     ]
     mouse = []
@@ -120,19 +120,8 @@ def test_command():
     assert not c.command("nonexistent")
 
 
-class ConcreteCmdRoot(libqtile.command._CommandRoot):
-    def call(self, *args):
-        return args
-
-    def _items(self, name):
-        return None
-
-    def _select(self, name, sel):
-        return None
-
-
 def test_selectors():
-    c = ConcreteCmdRoot()
+    c = libqtile.command_graph.CommandGraphRoot()
 
     s = c.layout.screen.info
     assert s.selectors == [('layout', None), ('screen', None)]

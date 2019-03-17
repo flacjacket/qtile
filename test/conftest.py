@@ -97,7 +97,8 @@ def can_connect_x11(disp=':0'):
 
 @Retry(ignore_exceptions=(libqtile.ipc.IPCError,), return_on_fail=True)
 def can_connect_qtile(socket_path):
-    client = libqtile.command.Client(socket_path)
+    ipc_client = libqtile.ipc.Client(socket_path)
+    client = libqtile.command.Client(ipc_client)
     val = client.status()
     if val == 'OK':
         return True
@@ -136,12 +137,12 @@ class BareConfig:
         libqtile.config.Key(
             ["control"],
             "k",
-            libqtile.command._Call([("layout", None)], "up")
+            libqtile.command.lazy.layout.up(),
         ),
         libqtile.config.Key(
             ["control"],
             "j",
-            libqtile.command._Call([("layout", None)], "down")
+            libqtile.command.lazy.layout.down(),
         ),
     ]
     mouse = []
@@ -272,7 +273,8 @@ class Qtile:
 
         # First, wait for socket to appear
         if can_connect_qtile(self.sockfile):
-            self.c = libqtile.command.Client(self.sockfile)
+            client = libqtile.ipc.Client(self.sockfile)
+            self.c = libqtile.command.Client(client)
             return
         if rpipe.poll(sleep_time):
             error = rpipe.recv()

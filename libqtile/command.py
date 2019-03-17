@@ -19,13 +19,16 @@
 # SOFTWARE.
 
 import abc
+import functools
 import inspect
 import traceback
-import os
+from typing import Any, Callable, List, Optional, Tuple, TypeVar
 
-from . import ipc
-from .utils import get_cache_dir
-from .log_utils import logger
+from libqtile.log_utils import logger
+from libqtile.command_graph import CommandGraphCall, CommandGraphRoot
+
+
+lazy = CommandGraphRoot()
 
 
 class CommandError(Exception):
@@ -38,7 +41,7 @@ class CommandException(Exception):
 
 class _SelectError(Exception):
     def __init__(self, name, sel):
-        Exception.__init__(self)
+        super().__init__()
         self.name = name
         self.sel = sel
 
@@ -46,8 +49,6 @@ class _SelectError(Exception):
 SUCCESS = 0
 ERROR = 1
 EXCEPTION = 2
-
-SOCKBASE = "qtilesocket.%s"
 
 
 def format_selectors(lst):
@@ -65,257 +66,30 @@ def format_selectors(lst):
     return "".join(expr)
 
 
-class _Server(ipc.Server):
-    def __init__(self, fname, qtile, conf, eventloop):
-        if os.path.exists(fname):
-            os.unlink(fname)
-        ipc.Server.__init__(self, fname, self.call, eventloop)
-        self.qtile = qtile
-        self.widgets = {}
-        for i in conf.screens:
-            for j in i.gaps:
-                if hasattr(j, "widgets"):
-                    for w in j.widgets:
-                        if w.name:
-                            self.widgets[w.name] = w
+_T = TypeVar('_T')
 
-    def call(self, data):
+
+def wrap_ipc_data(func: Callable[[CommandGraphCall], _T]) -> Callable[[Any], _T]:
+    @functools.wraps(func)
+    def wrapper(data):
         selectors, name, args, kwargs = data
-        try:
-            obj = self.qtile.select(selectors)
-        except _SelectError as v:
-            e = format_selectors([(v.name, v.sel)])
-            s = format_selectors(selectors)
-            return (ERROR, "No object %s in path '%s'" % (e, s))
-        cmd = obj.command(name)
-        if not cmd:
-            return (ERROR, "No such command.")
-        logger.debug("Command: %s(%s, %s)", name, args, kwargs)
-        try:
-            return (SUCCESS, cmd(*args, **kwargs))
-        except CommandError as v:
-            return (ERROR, v.args[0])
-        except Exception:
-            return (EXCEPTION, traceback.format_exc())
+        return func(CommandGraphCall(selectors, name, *args, **kwargs))
+
+    return wrapper
 
 
-class _Command:
-    def __init__(self, call, selectors, name):
-        """
-            :command A string command name specification
-            :*args Arguments to be passed to the specified command
-            :*kwargs Arguments to be passed to the specified command
-        """
-        self.selectors = selectors
-        self.name = name
-        self.call = call
-
-    def __call__(self, *args, **kwargs):
-        return self.call(self.selectors, self.name, *args, **kwargs)
-
-
-class _CommandTree(metaclass=abc.ABCMeta):
-    """A hierarchical collection of objects that contain commands
-
-    CommandTree objects act as containers, allowing them to be nested. The
-    commands themselves appear on the object as callable attributes.
-    """
-    def __init__(self, selectors, myselector, parent):
-        self.selectors = selectors
-        self.myselector = myselector
-        self.parent = parent
-
-    @property
-    def path(self):
-        s = self.selectors[:]
-        if self.name:
-            s += [(self.name, self.myselector)]
-        return format_selectors(s)
-
-    @property
-    @abc.abstractmethod
-    def name(self):
-        pass
-
-    @property
-    @abc.abstractmethod
-    def _contains(self):
-        pass
+class Client(CommandGraphRoot):
+    def __init__(self, client):
+        self._client = client
 
     def call(self, selectors, name, *args, **kwargs):
-        if self.parent:
-            return self.parent.call(selectors, name, *args, **kwargs)
-        else:
-            raise NotImplementedError()
-
-    def __getitem__(self, select):
-        if self.myselector:
-            raise KeyError("No such key: %s" % select)
-        return self.__class__(self.selectors, select, self)
-
-    def __getattr__(self, name):
-        next_selector = self.selectors[:]
-        if self.name:
-            next_selector.append((self.name, self.myselector))
-        if name in self._contains:
-            return _TreeMap[name](next_selector, None, self)
-        else:
-            return _Command(self.call, next_selector, name)
-
-
-class _TLayout(_CommandTree):
-    name = "layout"
-    _contains = ["group", "window", "screen"]
-
-
-class _TWidget(_CommandTree):
-    name = "widget"
-    _contains = ["bar", "screen", "group"]
-
-
-class _TBar(_CommandTree):
-    name = "bar"
-    _contains = ["screen"]
-
-
-class _TWindow(_CommandTree):
-    name = "window"
-    _contains = ["group", "screen", "layout"]
-
-
-class _TScreen(_CommandTree):
-    name = "screen"
-    _contains = ["layout", "window", "bar"]
-
-
-class _TGroup(_CommandTree):
-    name = "group"
-    _contains = ["layout", "window", "screen"]
-
-
-_TreeMap = {
-    "layout": _TLayout,
-    "widget": _TWidget,
-    "bar": _TBar,
-    "window": _TWindow,
-    "screen": _TScreen,
-    "group": _TGroup,
-}
-
-
-class _CommandRoot(_CommandTree, metaclass=abc.ABCMeta):
-    """This class constructs the entire hierarchy of callable commands from a conf object"""
-    name = None
-    _contains = ["layout", "widget", "screen", "bar", "window", "group"]
-
-    def __init__(self):
-        _CommandTree.__init__(self, [], None, None)
-
-    def __getitem__(self, select):
-        raise KeyError("No such key: %s" % select)
-
-    @abc.abstractmethod
-    def call(self, selectors, name, *args, **kwargs):
-        """This method is called for issued commands.
-
-        Parameters
-        ==========
-        selectors :
-            A list of (name, selector) tuples.
-        name :
-            Command name.
-        """
-        pass
-
-
-def find_sockfile(display=None):
-    """
-        Finds the appropriate socket file.
-    """
-    display = display or os.environ.get('DISPLAY') or ':0.0'
-    if '.' not in display:
-        display += '.0'
-    cache_directory = get_cache_dir()
-    return os.path.join(cache_directory, SOCKBASE % display)
-
-
-class Client(_CommandRoot):
-    """Exposes a command tree used to communicate with a running instance of Qtile"""
-    def __init__(self, fname=None, is_json=False):
-        if not fname:
-            fname = find_sockfile()
-        self.client = ipc.Client(fname, is_json)
-        _CommandRoot.__init__(self)
-
-    def call(self, selectors, name, *args, **kwargs):
-        state, val = self.client.call((selectors, name, args, kwargs))
+        state, val = self._client.call((selectors, name, args, kwargs))
         if state == SUCCESS:
             return val
         elif state == ERROR:
             raise CommandError(val)
         else:
             raise CommandException(val)
-
-
-class CommandRoot(_CommandRoot):
-    def __init__(self, qtile):
-        self.qtile = qtile
-        super().__init__()
-
-    def call(self, selectors, name, *args, **kwargs):
-        state, val = self.qtile.server.call((selectors, name, args, kwargs))
-        if state == SUCCESS:
-            return val
-        elif state == ERROR:
-            raise CommandError(val)
-        else:
-            raise CommandException(val)
-
-
-class _Call:
-    """
-    Parameters
-    ==========
-    command :
-        A string command name specification
-    args :
-        Arguments to be passed to the specified command
-    kwargs :
-        Arguments to be passed to the specified command
-    """
-    def __init__(self, selectors, name, *args, **kwargs):
-        self.selectors = selectors
-        self.name = name
-        self.args = args
-        self.kwargs = kwargs
-        # Conditionals
-        self.layout = None
-
-    def when(self, layout=None, when_floating=True):
-        self.layout = layout
-        self.when_floating = when_floating
-        return self
-
-    def check(self, q):
-        if self.layout:
-            if self.layout == 'floating':
-                if q.current_window.floating:
-                    return True
-                return False
-            if q.current_layout.name != self.layout:
-                return False
-            if q.current_window and q.current_window.floating \
-                    and not self.when_floating:
-                return False
-        return True
-
-
-class _LazyTree(_CommandRoot):
-    def call(self, selectors, name, *args, **kwargs):
-        return _Call(selectors, name, *args, **kwargs)
-
-
-lazy = _LazyTree()
 
 
 class CommandObject(metaclass=abc.ABCMeta):
@@ -326,7 +100,7 @@ class CommandObject(metaclass=abc.ABCMeta):
     (c.f. docstring for `.items()` and `.select()`).
     """
 
-    def select(self, selectors):
+    def select(self, selectors: List[Tuple[str, Optional[str]]]) -> "CommandObject":
         """Return a selected object
 
         Recursively finds an object specified by a list of `(name, selector)`
@@ -336,16 +110,19 @@ class CommandObject(metaclass=abc.ABCMeta):
         """
         if not selectors:
             return self
+
         name, selector = selectors[0]
         next_selector = selectors[1:]
 
         root, items = self.items(name)
-        # if non-root object and no selector given
-        # if no items in container, but selector is given
-        # if selector is not in the list of contained items
-        if (root is False and selector is None) or \
-                (items is None and selector is not None) or \
-                (items is not None and selector and selector not in items):
+
+        # cases that cause selection errors:
+        # if no selector given, but no root object
+        # if selector is given, but no items in container
+        # if selector is given, but not in the list of contained items
+        if (selector is None and root is False) or \
+                (selector is not None and items is None) or \
+                (selector is not None and selector not in items):
             raise _SelectError(name, selector)
 
         obj = self._select(name, selector)
@@ -353,7 +130,7 @@ class CommandObject(metaclass=abc.ABCMeta):
             raise _SelectError(name, selector)
         return obj.select(next_selector)
 
-    def items(self, name):
+    def items(self, name: str) -> Tuple[bool, List[str]]:
         """Build a list of contained items for the given item class
 
         Returns a tuple `(root, items)` for the specified item class, where:
@@ -372,16 +149,7 @@ class CommandObject(metaclass=abc.ABCMeta):
         return ret
 
     @abc.abstractmethod
-    def _items(self, name):
-        """Generate the items for a given
-
-        Same return as `.items()`. Return `None` if name is not a valid item
-        class.
-        """
-        pass
-
-    @abc.abstractmethod
-    def _select(self, name, sel):
+    def _select(self, name: str, sel: Optional[str]) -> "CommandObject":
         """Select the given item of the given item class
 
         This method is called with the following guarantees:
@@ -394,7 +162,16 @@ class CommandObject(metaclass=abc.ABCMeta):
         """
         pass
 
-    def command(self, name):
+    @abc.abstractmethod
+    def _items(self, name) -> Tuple[bool, List[str]]:
+        """Generate the items for a given
+
+        Same return as `.items()`. Return `None` if name is not a valid item
+        class.
+        """
+        pass
+
+    def command(self, name: str) -> Callable:
         return getattr(self, "cmd_" + name, None)
 
     @property
@@ -451,13 +228,13 @@ class CommandObject(metaclass=abc.ABCMeta):
         """
         try:
             try:
-                return (True, str(eval(code)))
+                return True, str(eval(code))
             except SyntaxError:
                 exec(code)
-                return (True, None)
-        except:  # noqa: E722
+                return True, None
+        except Exception:
             error = traceback.format_exc().strip().split("\n")[-1]
-            return (False, error)
+            return False, error
 
     def cmd_function(self, function, *args, **kwargs):
         """Call a function with current object as argument"""
@@ -466,3 +243,44 @@ class CommandObject(metaclass=abc.ABCMeta):
         except Exception:
             error = traceback.format_exc()
             logger.error('Exception calling "%s":\n%s' % (function, error))
+
+    def dispatch_call(self, call: CommandGraphCall) -> Tuple[int, str]:
+        """Forward a call from the command graph into the command object
+
+        Parameters
+        ----------
+        data:
+            The data that is sent in, a tuple of the object graph selectors,
+            the name of the command to run, the args to the command, and the
+            kwargs to the command.
+
+        Returns
+        -------
+        Tuple[int, str]
+            The return code from the command call and the string that is
+            returned from the command call.
+        """
+        logger.debug("Command: %s(%s, %s)", call.name, call.args, call.kwargs)
+
+        try:
+            selected_object = self.select(call.selectors)
+        except _SelectError as v:
+            e = format_selectors([(v.name, v.sel)])
+            s = format_selectors(call.selectors)
+            return ERROR, "No object {} in path '{}'".format(e, s)
+
+        command = selected_object.command(call.name)
+        if command is None:
+            return ERROR, "No such command: {}".format(call.name)
+
+        try:
+            print(command)
+            print(call.args)
+            print(call.kwargs)
+            output = command(*call.args, **call.kwargs)
+        except CommandError as v:
+            return ERROR, v.args[0]
+        except Exception:
+            return EXCEPTION, traceback.format_exc()
+
+        return SUCCESS, output

@@ -25,20 +25,44 @@
     un-marshalling untrusted data can result in arbitrary code execution).
 """
 import asyncio
+import fcntl
+import json
 import marshal
 import os.path
 import socket
 import struct
-import fcntl
-import json
+from typing import Optional
 
 from .log_utils import logger
+from libqtile.utils import get_cache_dir
 
 HDRLEN = 4
+SOCKBASE = "qtilesocket.%s"
 
 
 class IPCError(Exception):
     pass
+
+
+def find_sockfile(display: str = None) -> str:
+    """Finds the socket file for the given display
+
+    Parameters
+    ----------
+    display: str
+        The display to get the socket for.  If not specified, uses the value in
+        the "DISPLAY" environment variable, if not set, falls back to ":0.0".
+
+    Returns
+    -------
+    str
+        The path to the socket file.
+    """
+    display = display or os.environ.get('DISPLAY') or ':0.0'
+    if '.' not in display:
+        display += '.0'
+    cache_directory = get_cache_dir()
+    return os.path.join(cache_directory, SOCKBASE % display)
 
 
 class _IPC:
@@ -132,7 +156,9 @@ class _ClientProtocol(asyncio.Protocol, _IPC):
 
 
 class Client:
-    def __init__(self, fname, is_json=False):
+    def __init__(self, fname: Optional[str], is_json=False) -> None:
+        if fname is None:
+            fname = find_sockfile()
         self.fname = fname
         self.loop = asyncio.get_event_loop()
         self.is_json = is_json

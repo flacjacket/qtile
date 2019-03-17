@@ -30,8 +30,7 @@ import sys
 import struct
 import termios
 
-from . import command
-from . import ipc
+from libqtile import command, command_graph, ipc
 
 
 def terminal_width():
@@ -47,8 +46,8 @@ def terminal_width():
 class QSh:
     """Qtile shell instance"""
     def __init__(self, client, completekey="tab"):
-        self.clientroot = client
-        self.current = client
+        self.client = client
+        self.current = command_graph.CommandGraphRoot()
         self.completekey = completekey
         self.builtins = [i[3:] for i in dir(self) if i.startswith("do_")]
         self.termwidth = terminal_width()
@@ -160,7 +159,7 @@ class QSh:
             return None
 
     def _find_path(self, path):
-        root = self.clientroot if path.startswith("/") else self.current
+        root = command_graph.CommandGraphRoot() if path.startswith("/") else self.current
         parts = [i for i in path.split("/") if i]
         return self._find_node(root, *parts)
 
