@@ -82,6 +82,11 @@ class _CommandGraphContainer(_CommandGraphNode, metaclass=abc.ABCMeta):
     def children(self) -> List[str]:
         pass
 
+    @property
+    @abc.abstractmethod
+    def parent(self) -> Optional["_CommandGraphContainer"]:
+        pass
+
     def __getattr__(self, name: str) -> _CommandGraphNode:
         if name in self.children:
             return _CommandGraphMap[name](None, self)
@@ -99,6 +104,10 @@ class CommandGraphRoot(_CommandGraphContainer):
     def children(self):
         return ["layout", "widget", "screen", "bar", "window", "group"]
 
+    @property
+    def parent(self) -> None:
+        return None
+
     def call(self,
              selectors: List[Tuple[str, Optional[str]]],
              name: str,
@@ -112,7 +121,7 @@ class CommandGraphRoot(_CommandGraphContainer):
 
 
 class _CommandGraphObject(_CommandGraphContainer, metaclass=abc.ABCMeta):
-    def __init__(self, selector: Optional[str], parent: _CommandGraphNode):
+    def __init__(self, selector: Optional[str], parent: _CommandGraphContainer):
         self._selector = selector
         self._parent = parent
 
@@ -120,6 +129,10 @@ class _CommandGraphObject(_CommandGraphContainer, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def object_type(self) -> str:
         pass
+
+    @property
+    def parent(self) -> _CommandGraphContainer:
+        return self._parent
 
     def call(self,
              selectors: List[Tuple[str, Optional[str]]],

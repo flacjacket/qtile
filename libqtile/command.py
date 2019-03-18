@@ -25,7 +25,7 @@ import traceback
 from typing import Any, Callable, List, Optional, Tuple, TypeVar
 
 from libqtile.log_utils import logger
-from libqtile.command_graph import CommandGraphCall, CommandGraphRoot
+from libqtile.command_graph import CommandGraphCall, CommandGraphRoot, _CommandGraphNode, _Command
 
 
 lazy = CommandGraphRoot()
@@ -78,12 +78,36 @@ def wrap_ipc_data(func: Callable[[CommandGraphCall], _T]) -> Callable[[Any], _T]
     return wrapper
 
 
-class Client(CommandGraphRoot):
-    def __init__(self, client):
+class Client:
+    def __init__(self, client, command_graph_node: _CommandGraphNode = None) -> None:
         self._client = client
+        if command_graph_node is None:
+            command_graph_node = CommandGraphRoot()
+        self.command_graph_node = command_graph_node
 
-    def call(self, selectors, name, *args, **kwargs):
-        state, val = self._client.call((selectors, name, args, kwargs))
+    @property
+    def parent(self):
+        return self.command_graph_node.parent
+
+    @property
+    def path(self) -> str:
+        return "path"
+
+    def __getattr__(self, selection: str) -> "Client":
+        self.command_graph_node = getattr(self.command_graph_node, selection)
+        print("command:", self.command_graph_node, selection)
+        return self
+
+    def __getitem__(self, name: str) -> "Client":
+        self.command_graph_node = self.command_graph_node[name]
+        print("command:", self.command_graph_node, name)
+        return self
+
+    def __call__(self, *args, **kwargs) -> str:
+        if not isinstance(self.command_graph_node, _Command):
+            raise CommandError("Current selection is not a command")
+        call = self.command_graph_node(*args, **kwargs)
+        state, val = self._client.call((call.selectors, call.name, call.args, call.kwargs))
         if state == SUCCESS:
             return val
         elif state == ERROR:

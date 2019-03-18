@@ -29,8 +29,9 @@ import readline
 import sys
 import struct
 import termios
+from typing import Optional
 
-from libqtile import command, command_graph, ipc
+from libqtile import command, command_graph
 
 
 def terminal_width():
@@ -45,9 +46,8 @@ def terminal_width():
 
 class QSh:
     """Qtile shell instance"""
-    def __init__(self, client, completekey="tab"):
+    def __init__(self, client: command.Client, completekey="tab") -> None:
         self.client = client
-        self.current = command_graph.CommandGraphRoot()
         self.completekey = completekey
         self.builtins = [i[3:] for i in dir(self) if i.startswith("do_")]
         self.termwidth = terminal_width()
@@ -83,7 +83,7 @@ class QSh:
 
     @property
     def prompt(self):
-        return "%s> " % self.current.path
+        return "%s> " % self.client.path
 
     def columnize(self, lst, update_termwidth=True):
         if update_termwidth:
@@ -107,27 +107,27 @@ class QSh:
 
     def _inspect(self, obj):
         """Returns an (attrs, keys) tuple"""
-        if obj.parent and obj.myselector is None:
+        if obj.parent is not None and obj._selector is None:
             t, itms = obj.parent.items(obj.name)
-            attrs = obj._contains if t else None
+            attrs = obj.children if t else None
             return (attrs, itms)
         else:
-            return (obj._contains, [])
+            return (obj.children, [])
 
     def _ls(self, obj):
         attrs, itms = self._inspect(obj)
-        all = []
+        all_items = []
         if attrs:
-            all.extend(attrs)
+            all_items.extend(attrs)
         if itms:
-            all.extend(itms)
-        return all
+            all_items.extend(itms)
+        return all_items
 
     @property
     def _commands(self):
         try:
             # calling `.commands()` here triggers `CommandRoot.cmd_commands()`
-            return self.current.commands()
+            return self.client.commands()
         except command.CommandError:
             return []
 
@@ -158,12 +158,34 @@ class QSh:
         else:
             return None
 
-    def _find_path(self, path):
-        root = command_graph.CommandGraphRoot() if path.startswith("/") else self.current
+    def _find_path(self, path) -> Optional[command_graph._CommandGraphNode]:
+        node = command_graph.CommandGraphRoot() if path.startswith("/") else self.client.command_graph_node
         parts = [i for i in path.split("/") if i]
-        return self._find_node(root, *parts)
+        for part in parts:
+            if not isinstance(node, command_graph._CommandGraphContainer):
+                return None
 
-    def do_cd(self, arg):
+            if part == "..":
+                node = node.parent or node
+            else:
+                attrs, items = self._inspect(node)
+                for trans in [str, int]:
+                    try:
+                        tpath = trans(part)
+                    except ValueError:
+                        continue
+                    if attrs and tpath in attrs:
+                        node = getattr(node, tpath)
+                        break
+                    elif items and tpath in items:
+                        node = node[tpath]
+                        break
+                else:
+                    return None
+
+        return node
+
+    def do_cd(self, arg: str) -> str:
         """Change to another path.
 
         Examples
@@ -173,10 +195,11 @@ class QSh:
 
             cd ../layout
         """
-        next = self._find_path(arg)
-        if next:
-            self.current = next
-            return self.current.path or '/'
+        next_path = self._find_path(arg)
+        print("next:", next_path, arg)
+        if next_path:
+            self.client.command_graph_node = next_path
+            return self.client.path or '/'
         else:
             return "No such path."
 
@@ -189,11 +212,12 @@ class QSh:
                 > ls
                 > ls ../layout
         """
-        path = self.current
         if arg:
             path = self._find_path(arg)
-            if not path:
+            if path is None:
                 return "No such path."
+        else:
+            path = self.client.command_graph_node
 
         ls = self._ls(path)
         formatted_ls = ["%s/" % i for i in ls]
@@ -282,14 +306,6 @@ class QSh:
             return "Syntax error in expression: %s" % v.text
         except command.CommandException as val:
             return "Command exception: %s\n" % val
-        except ipc.IPCError:
-            # on restart, try to reconnect
-            if cmd_name == 'restart':
-                client = command.Client(self.clientroot.client.fname)
-                self.clientroot = client
-                self.current = client
-            else:
-                raise
 
     def process_command(self, line):
         match = re.search(r"\W", line)

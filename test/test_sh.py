@@ -64,9 +64,13 @@ def test_columnize(qtile):
 
 @sh_config
 def test_ls(qtile):
-    qtile.sh = libqtile.sh.QSh(qtile.c)
-    qtile.sh.do_cd("layout")
-    qtile.sh.do_ls("")
+    sh = libqtile.sh.QSh(qtile.c)
+    output = sh.do_ls("")
+    print(output)
+    sh.do_cd("layout")
+    output = sh.do_ls("")
+    print(output)
+    1 / 0
 
 
 @sh_config
