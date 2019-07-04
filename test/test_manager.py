@@ -1061,6 +1061,7 @@ def test_color_pixel(qtile):
 
 @manager_config
 def test_change_loglevel(qtile):
+    qtile.c.info()
     assert qtile.c.loglevel() == logging.INFO
     assert qtile.c.loglevelname() == 'INFO'
     qtile.c.debug()

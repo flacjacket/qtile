@@ -292,8 +292,7 @@ class Qtile:
         an error and the returned manager should not be started, otherwise this
         will likely block the thread.
         """
-        llvl = logging.DEBUG if pytest.config.getoption("--debuglog") else logging.INFO
-        init_log(llvl, log_path=None, log_color=False)
+        init_log(logging.INFO, log_path=None, log_color=False)
         kore = xcore.XCore()
         config = config_class()
         for attr in dir(default_config):
