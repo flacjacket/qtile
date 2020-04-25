@@ -36,22 +36,23 @@ import xcffib
 import xcffib.xinerama
 import xcffib.xproto
 
-from libqtile import command_interface, hook, utils, window
+from libqtile import hook, utils, window
 from libqtile.backend.x11 import xcbq
 from libqtile.backend.x11.xcore import XCore
-from libqtile.command_client import InteractiveCommandClient
-from libqtile.command_interface import IPCCommandServer, QtileCommandInterface
-from libqtile.command_object import (
-    CommandError,
-    CommandException,
-    CommandObject,
-)
 from libqtile.config import Click, Drag, Match, Rule
 from libqtile.config import ScratchPad as ScratchPadConfig
 from libqtile.config import Screen
 from libqtile.confreader import Config, ConfigError
 from libqtile.dgroups import DGroups
 from libqtile.extension.base import _Extension
+from libqtile.graph import interface as command_interface
+from libqtile.graph.client import InteractiveCommandClient
+from libqtile.graph.interface import IPCCommandServer, QtileCommandInterface
+from libqtile.graph.object import (
+    CommandError,
+    CommandException,
+    CommandObject,
+)
 from libqtile.group import _Group
 from libqtile.lazy import lazy
 from libqtile.log_utils import logger

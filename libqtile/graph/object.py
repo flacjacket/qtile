@@ -27,7 +27,7 @@ import inspect
 import traceback
 from typing import Callable, List, Optional, Tuple, Union
 
-from libqtile.command_graph import SelectorType
+from libqtile.graph.node import SelectorType
 from libqtile.log_utils import logger
 
 
@@ -50,7 +50,7 @@ class CommandException(Exception):
     """Error raised while executing a command"""
 
 
-class CommandObject(metaclass=abc.ABCMeta):
+class CommandObject(abc.ABC):
     """Base class for objects that expose commands
 
     Each command should be a method named `cmd_X`, where X is the command name.

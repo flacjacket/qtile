@@ -35,7 +35,7 @@ import warnings
 from typing import Any, List, Tuple
 
 from libqtile import bar, configurable, confreader, drawer
-from libqtile.command_object import CommandError, CommandObject
+from libqtile.graph.object import CommandError, CommandObject
 from libqtile.log_utils import logger
 
 

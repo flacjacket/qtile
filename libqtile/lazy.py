@@ -20,13 +20,13 @@
 
 from typing import Dict, List, Optional, Tuple, Union  # noqa: F401
 
-from libqtile.command_client import InteractiveCommandClient
-from libqtile.command_graph import (
+from libqtile.graph.client import InteractiveCommandClient
+from libqtile.graph.node import (
     CommandGraphCall,
     CommandGraphNode,
     SelectorType,
 )
-from libqtile.command_interface import CommandInterface
+from libqtile.graph.interface import CommandInterface
 
 
 class LazyCall:

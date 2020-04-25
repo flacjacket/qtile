@@ -31,7 +31,7 @@ import warnings
 from typing import List
 
 from libqtile import configurable, hook, utils
-from libqtile.command_object import CommandObject
+from libqtile.graph.object import CommandObject
 
 
 class Key:

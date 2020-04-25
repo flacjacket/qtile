@@ -30,7 +30,9 @@ import time
 import tracemalloc
 from tracemalloc import Snapshot
 
-from libqtile import command_client, command_interface, ipc
+from libqtile import ipc
+from libqtile.graph.client import InteractiveCommandClient
+from libqtile.graph.interface import IPCCommandInterface
 
 
 class TraceNotStarted(Exception):
@@ -158,8 +160,8 @@ def main():
     else:
         socket = opts.socket
     client = ipc.Client(socket)
-    client = command_interface.IPCCommandInterface(client)
-    client = command_client.InteractiveCommandClient(client)
+    client = IPCCommandInterface(client)
+    client = InteractiveCommandClient(client)
 
     try:
         if not opts.raw:

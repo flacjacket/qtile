@@ -19,7 +19,7 @@
 # SOFTWARE.
 
 from libqtile import configurable, confreader, drawer, window
-from libqtile.command_object import CommandObject
+from libqtile.graph.object import CommandObject
 
 
 class Gap(CommandObject):

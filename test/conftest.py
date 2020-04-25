@@ -37,9 +37,11 @@ import xcffib.testing
 import xcffib.xproto
 
 import libqtile.config
-from libqtile import command_client, command_interface, ipc
+from libqtile import ipc
 from libqtile.backend.x11 import xcore
 from libqtile.core.session_manager import SessionManager
+from libqtile.graph.client import InteractiveCommandClient
+from libqtile.graph.interface import IPCCommandInterface
 from libqtile.lazy import lazy
 from libqtile.log_utils import init_log
 from libqtile.resources import default_config
@@ -100,8 +102,8 @@ def can_connect_x11(disp=':0'):
 @Retry(ignore_exceptions=(ipc.IPCError,), return_on_fail=True)
 def can_connect_qtile(socket_path):
     ipc_client = ipc.Client(socket_path)
-    ipc_command = command_interface.IPCCommandInterface(ipc_client)
-    client = command_client.InteractiveCommandClient(ipc_command)
+    ipc_command = IPCCommandInterface(ipc_client)
+    client = InteractiveCommandClient(ipc_command)
     val = client.status()
     if val == 'OK':
         return True
@@ -277,8 +279,8 @@ class Qtile:
         # First, wait for socket to appear
         if can_connect_qtile(self.sockfile):
             ipc_client = ipc.Client(self.sockfile)
-            ipc_command = command_interface.IPCCommandInterface(ipc_client)
-            self.c = command_client.InteractiveCommandClient(ipc_command)
+            ipc_command = IPCCommandInterface(ipc_client)
+            self.c = InteractiveCommandClient(ipc_command)
             return
         if rpipe.poll(sleep_time):
             error = rpipe.recv()

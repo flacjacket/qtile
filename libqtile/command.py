@@ -24,7 +24,7 @@ The deprecated lazy command objects
 
 import warnings
 
-from libqtile.command_client import InteractiveCommandClient
+from libqtile.graph.client import InteractiveCommandClient
 from libqtile.lazy import LazyCommandInterface
 
 

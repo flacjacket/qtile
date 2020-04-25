@@ -18,7 +18,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from libqtile import command_interface, ipc, sh
+from libqtile import ipc, sh
+from libqtile.graph.interface import IPCCommandInterface
 
 
 def main() -> None:
@@ -64,7 +65,7 @@ def main() -> None:
     else:
         socket = args.socket
     client = ipc.Client(socket, is_json=args.is_json)
-    cmd_object = command_interface.IPCCommandInterface(client)
+    cmd_object = IPCCommandInterface(client)
     qsh = sh.QSh(cmd_object)
     if args.pyfile is None:
         if args.command is not None:

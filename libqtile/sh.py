@@ -31,8 +31,8 @@ import sys
 import termios
 from typing import List, Optional, Tuple
 
-from libqtile import command_graph
-from libqtile.command_interface import (
+from libqtile.graph import node as command_graph
+from libqtile.graph.interface import (
     CommandError,
     CommandException,
     CommandInterface,

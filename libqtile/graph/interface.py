@@ -23,16 +23,16 @@ The interface to execute commands on the command graph
 """
 
 import traceback
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Tuple, Union
 
 from libqtile import ipc
-from libqtile.command_graph import (
+from libqtile.graph.node import (
     CommandGraphCall,
     CommandGraphNode,
     SelectorType,
 )
-from libqtile.command_object import (
+from libqtile.graph.object import (
     CommandError,
     CommandException,
     CommandObject,
@@ -56,7 +56,7 @@ def format_selectors(selectors: List[SelectorType]) -> str:
     return ".".join(path_elements)
 
 
-class CommandInterface(metaclass=ABCMeta):
+class CommandInterface(ABC):
     """Defines an interface which can be used to evaluate a given call on a command graph.
 
     The implementations of this may use, for example, an IPC call to access the

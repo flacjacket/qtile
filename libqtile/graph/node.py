@@ -30,8 +30,8 @@ SelectorType = Tuple[str, Optional[Union[str, int]]]
 GraphType = Union["CommandGraphNode", "CommandGraphCall"]
 
 
-class CommandGraphNode(metaclass=abc.ABCMeta):
-    """A container node in the command graph structure
+class CommandGraphNode(abc.ABC):
+    """A generic command graph node
 
     A command graph node which can contain other elements that it can link to.
     May also have commands that can be executed on itself.
@@ -130,7 +130,7 @@ class CommandGraphRoot(CommandGraphNode):
         return ["bar", "group", "layout", "screen", "widget", "window"]
 
 
-class CommandGraphObject(CommandGraphNode, metaclass=abc.ABCMeta):
+class CommandGraphObject(CommandGraphNode, abc.ABC):
     """An object in the command graph that contains a collection of objects"""
 
     def __init__(self, selector: Optional[Union[str, int]], parent: CommandGraphNode) -> None:

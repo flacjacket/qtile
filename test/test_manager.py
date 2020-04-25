@@ -38,7 +38,7 @@ import libqtile.core.manager
 import libqtile.hook
 import libqtile.layout
 import libqtile.widget
-from libqtile.command_interface import CommandError, CommandException
+from libqtile.graph.interface import CommandError, CommandException
 from libqtile.lazy import lazy
 from test.conftest import BareConfig, Retry, no_xinerama, whereis
 
